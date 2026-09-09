@@ -1,13 +1,4 @@
-"""
-ReconAx - Lightweight, developer-friendly website analyzer.
-
-ReconAx provides a modular, passive analysis toolkit for inspecting
-publicly observable website information such as HTTP behavior, security
-headers, cookies, HTML, DNS, TLS, technologies, sitemaps, and security
-configuration.
-
-The package is designed to be useful from both Python code and the CLI.
-"""
+"""ReconAx - lightweight, developer-friendly website analyzer."""
 
 from .core import ReconAx
 from .models import (
@@ -15,10 +6,12 @@ from .models import (
     HTTPResponse,
     HeaderAnalysis,
     CookieInfo,
+    CookieAnalysis,
     HTMLAnalysis,
     RobotsAnalysis,
     DNSAnalysis,
     TLSAnalysis,
+    Technology,
     TechAnalysis,
     SitemapAnalysis,
     CORSAnalysis,
@@ -26,9 +19,12 @@ from .models import (
     SRIAnalysis,
     SecurityTxtAnalysis,
     MetadataAnalysis,
+    ResourceInfo,
     ResourceAnalysis,
+    EndpointInfo,
     EndpointAnalysis,
     AttackSurfaceAnalysis,
+    ScoreItem,
     ScoreReport,
 )
 from .shortcuts import (
@@ -52,7 +48,9 @@ from .shortcuts import (
     score,
 )
 
-__version__ = "0.2.0"
+# Keep the package version aligned with the currently released v0.1.x
+# metadata. v0.2.0 remains development work until explicitly released.
+__version__ = "0.1.0"
 
 __all__ = [
     "ReconAx",
@@ -60,10 +58,12 @@ __all__ = [
     "HTTPResponse",
     "HeaderAnalysis",
     "CookieInfo",
+    "CookieAnalysis",
     "HTMLAnalysis",
     "RobotsAnalysis",
     "DNSAnalysis",
     "TLSAnalysis",
+    "Technology",
     "TechAnalysis",
     "SitemapAnalysis",
     "CORSAnalysis",
@@ -71,9 +71,12 @@ __all__ = [
     "SRIAnalysis",
     "SecurityTxtAnalysis",
     "MetadataAnalysis",
+    "ResourceInfo",
     "ResourceAnalysis",
+    "EndpointInfo",
     "EndpointAnalysis",
     "AttackSurfaceAnalysis",
+    "ScoreItem",
     "ScoreReport",
     "analyze",
     "headers",
