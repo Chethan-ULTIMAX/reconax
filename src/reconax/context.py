@@ -34,7 +34,7 @@ class AnalysisContext:
     def response(self, refresh: bool = False):
         """Return the cached primary HTTP response."""
         if self._response is None or refresh:
-            self._response = self._client.fetch(self.url)
+            self._response = self._client.fetch(self.normalized_url)
             self._soup = None
             self._results.clear()
         return self._response
@@ -62,7 +62,7 @@ class AnalysisContext:
         return self.response().status_code
 
     def get(self, url: str, **kwargs: Any):
-        """Perform a raw secondary GET with the shared HTTP client."""
+        """Perform a raw GET for secondary public resources."""
         return self._client.raw_get(url, **kwargs)
 
     def _cached_module(self, key: str, module_class: type):
