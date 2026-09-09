@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from ..models import HeaderReport
+from ..models import HeaderAnalysis
 
 
 SECURITY_HEADERS = (
@@ -13,9 +13,34 @@ SECURITY_HEADERS = (
 )
 
 
-def analyze_headers(headers: dict[str, str]) -> HeaderReport:
-    normalized = {key.lower(): value for key, value in headers.items()}
-    present = [name for name in SECURITY_HEADERS if name in normalized]
-    missing = [name for name in SECURITY_HEADERS if name not in normalized]
-    values = {name: normalized[name] for name in present}
-    return HeaderReport(present, missing, values)
+def analyze_headers(
+    headers: dict[str, str],
+) -> HeaderAnalysis:
+    """
+    Analyze security-related HTTP response headers.
+
+    The result describes which headers are present or missing.
+    It is not a vulnerability scanner.
+    """
+
+    # HTTP header names are case-insensitive.
+    normalized_headers = {
+        name.lower(): value
+        for name, value in headers.items()
+    }
+
+    present: dict[str, str] = {}
+    missing: list[str] = []
+
+    for header_name in SECURITY_HEADERS:
+        if header_name in normalized_headers:
+            present[header_name] = normalized_headers[
+                header_name
+            ]
+        else:
+            missing.append(header_name)
+
+    return HeaderAnalysis(
+        present=present,
+        missing=missing,
+    )

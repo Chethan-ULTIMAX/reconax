@@ -2,27 +2,108 @@ from __future__ import annotations
 
 from urllib.parse import urlparse
 
+import dns.exception
 import dns.resolver
 
-from ..models import DNSReport
+from ..models import DNSAnalysis
 
 
-def _query(host: str, record_type: str) -> list[str]:
+def _get_hostname(
+    url: str,
+) -> str | None:
+    """Extract hostname from a URL."""
+
+    parsed = urlparse(url)
+
+    hostname = parsed.hostname
+
+    if not hostname:
+        return None
+
+    return hostname
+
+
+def _resolve(
+    resolver: dns.resolver.Resolver,
+    hostname: str,
+    record_type: str,
+) -> list[str]:
+    """Resolve one DNS record type safely."""
+
     try:
-        answers = dns.resolver.resolve(host, record_type, lifetime=3)
-        return [str(answer).rstrip(".") for answer in answers]
-    except Exception:
+        answers = resolver.resolve(
+            hostname,
+            record_type,
+        )
+
+    except (
+        dns.exception.DNSException,
+        OSError,
+    ):
         return []
 
+    results: list[str] = []
 
-def lookup_dns(url: str) -> DNSReport:
-    host = urlparse(url).hostname
-    if not host:
-        return DNSReport()
-    return DNSReport(
-        A=_query(host, "A"),
-        AAAA=_query(host, "AAAA"),
-        MX=_query(host, "MX"),
-        NS=_query(host, "NS"),
-        TXT=_query(host, "TXT"),
+    for answer in answers:
+
+        value = str(answer)
+
+        # dnspython often returns a trailing dot
+        # for DNS names.
+        if record_type in {
+            "MX",
+            "NS",
+        }:
+            value = value.rstrip(".")
+
+        results.append(value)
+
+    return results
+
+
+def lookup_dns(
+    url: str,
+) -> DNSAnalysis:
+    """
+    Perform basic DNS lookups for a hostname.
+
+    Returns empty lists when a record type cannot be resolved.
+    """
+
+    hostname = _get_hostname(url)
+
+    if not hostname:
+        return DNSAnalysis()
+
+    resolver = dns.resolver.Resolver()
+
+    resolver.timeout = 3.0
+    resolver.lifetime = 5.0
+
+    return DNSAnalysis(
+        a=_resolve(
+            resolver,
+            hostname,
+            "A",
+        ),
+        aaaa=_resolve(
+            resolver,
+            hostname,
+            "AAAA",
+        ),
+        mx=_resolve(
+            resolver,
+            hostname,
+            "MX",
+        ),
+        ns=_resolve(
+            resolver,
+            hostname,
+            "NS",
+        ),
+        txt=_resolve(
+            resolver,
+            hostname,
+            "TXT",
+        ),
     )

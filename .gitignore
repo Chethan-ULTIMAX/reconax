@@ -1,15 +1,38 @@
+# Python
 __pycache__/
 *.py[cod]
-*.egg-info/
+*$py.class
+
+# Virtual environments
 .venv/
 venv/
-.env
+env/
+
+# Testing
 .pytest_cache/
 .coverage
 htmlcov/
-dist/
+
+# Build artifacts
 build/
-*.json
-.DS_Store
-.idea/
+dist/
+*.egg-info/
+
+# IDEs
 .vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# ReconAx generated reports
+report.json
+reports/
+
+# Local environment
+.env
+.env.*
+
+# Jupyter
+.ipynb_checkpoints/

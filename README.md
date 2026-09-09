@@ -90,6 +90,7 @@ reconax https://example.com
 
 ### 🌐 HTTP
 
+<<<<<<< HEAD
 - Status code
 - Response time
 - Redirects
@@ -98,17 +99,36 @@ reconax https://example.com
 - Content type
 - Content length
 - Response headers
+=======
+* Status code
+* Response time
+* Redirects
+* Final URL
+* HTTP version
+* Content type
+* Content length
+* Response headers
+>>>>>>> f69ca0d (docs: improve project README and metadata)
 
 ### 🛡️ Security Headers
 
 Checks commonly used headers such as:
 
+<<<<<<< HEAD
 - `Strict-Transport-Security`
 - `Content-Security-Policy`
 - `X-Content-Type-Options`
 - `X-Frame-Options`
 - `Referrer-Policy`
 - `Permissions-Policy`
+=======
+* `Strict-Transport-Security`
+* `Content-Security-Policy`
+* `X-Content-Type-Options`
+* `X-Frame-Options`
+* `Referrer-Policy`
+* `Permissions-Policy`
+>>>>>>> f69ca0d (docs: improve project README and metadata)
 
 ### 🍪 Cookies
 
@@ -126,12 +146,21 @@ Cookie values are **never included** in the report.
 
 Extracts:
 
+<<<<<<< HEAD
 - Page title
 - Meta description
 - Internal links
 - External links
 - Scripts
 - Images
+=======
+* Page title
+* Meta description
+* Internal links
+* External links
+* Scripts
+* Images
+>>>>>>> f69ca0d (docs: improve project README and metadata)
 
 ### 🤖 robots.txt
 
@@ -143,8 +172,13 @@ Checks:
 
 and shows:
 
+<<<<<<< HEAD
 - Disallow rules
 - Sitemap URLs
+=======
+* Disallow rules
+* Sitemap URLs
+>>>>>>> f69ca0d (docs: improve project README and metadata)
 
 ### 🌎 DNS
 
@@ -304,12 +338,21 @@ ReconAx focuses on **lightweight public-information analysis**.
 
 It does not perform:
 
+<<<<<<< HEAD
 - Port scanning
 - Brute forcing
 - Exploitation
 - Credential attacks
 - Authentication bypass
 - Aggressive scanning
+=======
+* Port scanning
+* Brute forcing
+* Exploitation
+* Credential attacks
+* Authentication bypass
+* Aggressive scanning
+>>>>>>> f69ca0d (docs: improve project README and metadata)
 
 Use ReconAx only on websites and systems you're authorized to analyze.
 
