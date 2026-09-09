@@ -53,7 +53,7 @@ class RobotsModule(Module[RobotsAnalysis]):
                 ],
             )
 
-        content = response.text
+        content = response.content
 
         user_agents: list[str] = []
         allow_rules: list[str] = []
