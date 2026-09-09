@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reconax"
+version = "0.1.0"
+description = "A simple, developer-friendly website analyzer."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+
+dependencies = [
+    "httpx",
+    "beautifulsoup4",
+    "lxml",
+    "dnspython",
+    "rich",
+    "typer",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "respx",
+]
+
+[project.scripts]
+reconax = "reconax.cli:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reconax"]
