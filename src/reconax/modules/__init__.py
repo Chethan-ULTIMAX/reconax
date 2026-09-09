@@ -1,9 +1,4 @@
-"""
-ReconAx analysis modules.
-
-Modules are intentionally exported here so applications can import
-individual analyzers from one predictable namespace.
-"""
+"""ReconAx analysis modules."""
 
 from .base import Module
 from .http import HTTPModule
@@ -12,23 +7,18 @@ from .cookies import CookiesModule
 from .html import HTMLModule
 from .robots import RobotsModule
 from .dns import DNSModule
-
-# The following modules are part of the v0.2.0 architecture and will
-# be implemented in the next batch.
-#
-# from .tls import TLSModule
-# from .tech import TechModule
-# from .sitemap import SitemapModule
-# from .cors import CORSModule
-# from .csp import CSPModule
-# from .sri import SRIModule
-# from .security_txt import SecurityTxtModule
-# from .metadata import MetadataModule
-# from .resources import ResourcesModule
-# from .endpoints import EndpointsModule
-# from .attack_surface import AttackSurfaceModule
-# from .score import ScoreModule
-
+from .tls import TLSModule
+from .tech import TechModule
+from .sitemap import SitemapModule
+from .cors import CORSModule
+from .csp import CSPModule
+from .sri import SRIModule
+from .security_txt import SecurityTxtModule
+from .metadata import MetadataModule
+from .resources import ResourcesModule
+from .endpoints import EndpointsModule
+from .attack_surface import AttackSurfaceModule
+from .score import ScoreModule
 
 __all__ = [
     "Module",
@@ -38,4 +28,16 @@ __all__ = [
     "HTMLModule",
     "RobotsModule",
     "DNSModule",
+    "TLSModule",
+    "TechModule",
+    "SitemapModule",
+    "CORSModule",
+    "CSPModule",
+    "SRIModule",
+    "SecurityTxtModule",
+    "MetadataModule",
+    "ResourcesModule",
+    "EndpointsModule",
+    "AttackSurfaceModule",
+    "ScoreModule",
 ]
