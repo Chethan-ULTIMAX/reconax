@@ -84,7 +84,11 @@ class HTTPClient:
 
         redirect_chain = [str(item.url) for item in response.history]
         raw_length = response.headers.get("content-length")
-        content_length = int(raw_length) if raw_length and raw_length.isdigit() else None
+        content_length = (
+            int(raw_length)
+            if raw_length and raw_length.isdigit()
+            else len(response.content)
+        )
 
         return HTTPResponse(
             requested_url=requested_url,
