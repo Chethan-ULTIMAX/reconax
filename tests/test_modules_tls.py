@@ -56,9 +56,13 @@ def test_tls_analysis_does_not_depend_on_ssl_match_hostname(monkeypatch):
             assert server_hostname == "example.com"
             return FakeTLSSocket()
 
+    raw_socket = Mock()
+    raw_socket.__enter__ = Mock(return_value=raw_socket)
+    raw_socket.__exit__ = Mock(return_value=False)
+
     monkeypatch.setattr(
         "reconax.modules.tls.socket.create_connection",
-        lambda address, timeout: Mock(),
+        lambda address, timeout: raw_socket,
     )
     monkeypatch.setattr(
         "reconax.modules.tls.ssl.create_default_context",
