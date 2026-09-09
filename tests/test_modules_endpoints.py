@@ -20,12 +20,12 @@ def test_endpoints_module_extracts_public_urls():
         content="<html></html>",
     )
     context.html.return_value = BeautifulSoup(
-        '<html><body><a href="/about">About</a><a href="/api/users">API</a><form action="/login"></form><script src="/app.js"></script></body></html>',
+        '<html><body><a href="/about.html">About</a><a href="/api/users">API</a><form action="/login"></form><script src="/app.js"></script></body></html>',
         "lxml",
     )
     result = EndpointsModule(context).analyze()
     urls = [endpoint.url for endpoint in result.endpoints]
-    assert any(url.endswith("/about") for url in urls)
+    assert any(url.endswith("/about.html") for url in urls)
     assert any(url.endswith("/api/users") for url in urls)
     assert any(url.endswith("/login") for url in urls)
     assert result.pages
