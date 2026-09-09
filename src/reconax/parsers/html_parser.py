@@ -8,215 +8,111 @@ from ..models import HTMLAnalysis
 
 
 def _normalize_url(base_url: str, value: str) -> str:
-    """Convert a relative URL into an absolute URL."""
-
     return urljoin(base_url, value.strip())
 
 
 def _is_http_url(url: str) -> bool:
-    """Return True for HTTP/HTTPS URLs."""
-
-    parsed = urlparse(url)
-
-    return parsed.scheme in {"http", "https"}
+    return urlparse(url).scheme in {"http", "https"}
 
 
 def _is_internal(url: str, base_url: str) -> bool:
-    """Determine whether a URL belongs to the same hostname."""
-
     target = urlparse(url)
     base = urlparse(base_url)
-
     if not target.netloc:
         return True
-
     return target.netloc.lower() == base.netloc.lower()
 
 
-def parse_html(
-    html: str,
-    base_url: str,
-) -> HTMLAnalysis:
-    """
-    Parse HTML and extract useful public information.
+def _extract_urls(soup: BeautifulSoup, tag_name: str, attribute: str, base_url: str) -> list[str]:
+    values: list[str] = []
+    seen: set[str] = set()
+    for tag in soup.find_all(tag_name):
+        value = tag.get(attribute)
+        if not isinstance(value, str) or not value.strip():
+            continue
+        absolute = _normalize_url(base_url, value)
+        if not _is_http_url(absolute) or absolute in seen:
+            continue
+        seen.add(absolute)
+        values.append(absolute)
+    return values
 
-    No additional network requests are made here.
-    """
 
-    soup = BeautifulSoup(
-        html,
-        "lxml",
-    )
-
-    # ---------------------------------------------------------
-    # Title
-    # ---------------------------------------------------------
+def parse_html(html: str, base_url: str) -> HTMLAnalysis:
+    """Parse HTML without making network requests."""
+    soup = BeautifulSoup(html, "lxml")
 
     title = None
-
     if soup.title:
-        title_text = soup.title.get_text(
-            strip=True,
-        )
-
-        if title_text:
-            title = title_text
-
-    # ---------------------------------------------------------
-    # Meta description
-    # ---------------------------------------------------------
+        text = soup.title.get_text(strip=True)
+        title = text or None
 
     meta_description = None
-
     meta = soup.find(
         "meta",
-        attrs={
-            "name": lambda value: (
-                isinstance(value, str)
-                and value.lower() == "description"
-            )
-        },
+        attrs={"name": lambda value: isinstance(value, str) and value.lower() == "description"},
     )
-
-    if meta:
-        content = meta.get("content")
-
-        if content:
-            meta_description = content.strip()
-
-    # ---------------------------------------------------------
-    # Links
-    # ---------------------------------------------------------
+    if meta and meta.get("content"):
+        meta_description = str(meta.get("content")).strip()
 
     links: list[str] = []
     internal_links: list[str] = []
     external_links: list[str] = []
-
     seen_links: set[str] = set()
 
     for tag in soup.find_all("a", href=True):
         href = tag.get("href")
-
         if not isinstance(href, str):
             continue
-
         href = href.strip()
-
-        if not href:
+        if not href or href.startswith(("#", "mailto:", "tel:", "javascript:", "data:")):
             continue
-
-        # Ignore non-web links.
-        if href.startswith(
-            (
-                "#",
-                "mailto:",
-                "tel:",
-                "javascript:",
-                "data:",
-            )
-        ):
+        absolute = _normalize_url(base_url, href)
+        if not _is_http_url(absolute) or absolute in seen_links:
             continue
-
-        absolute_url = _normalize_url(
-            base_url,
-            href,
-        )
-
-        if not _is_http_url(absolute_url):
-            continue
-
-        if absolute_url in seen_links:
-            continue
-
-        seen_links.add(absolute_url)
-        links.append(absolute_url)
-
-        if _is_internal(
-            absolute_url,
-            base_url,
-        ):
-            internal_links.append(absolute_url)
+        seen_links.add(absolute)
+        links.append(absolute)
+        if _is_internal(absolute, base_url):
+            internal_links.append(absolute)
         else:
-            external_links.append(absolute_url)
+            external_links.append(absolute)
 
-    # ---------------------------------------------------------
-    # Scripts
-    # ---------------------------------------------------------
+    scripts = _extract_urls(soup, "script", "src", base_url)
+    images = _extract_urls(soup, "img", "src", base_url)
 
-    scripts: list[str] = []
+    html_tag = soup.find("html")
+    language = html_tag.get("lang") if html_tag else None
+    charset = None
+    for meta_tag in soup.find_all("meta"):
+        if meta_tag.get("charset"):
+            charset = str(meta_tag.get("charset"))
+            break
+        if str(meta_tag.get("http-equiv", "")).lower() == "content-type" and meta_tag.get("content"):
+            charset = str(meta_tag.get("content"))
+            break
 
-    seen_scripts: set[str] = set()
+    viewport_tag = soup.find(
+        "meta",
+        attrs={"name": lambda value: isinstance(value, str) and value.lower() == "viewport"},
+    )
+    viewport = str(viewport_tag.get("content")) if viewport_tag and viewport_tag.get("content") else None
 
-    for tag in soup.find_all("script"):
-        src = tag.get("src")
-
-        if not src:
-            continue
-
-        if not isinstance(src, str):
-            continue
-
-        src = src.strip()
-
-        if not src:
-            continue
-
-        absolute_url = _normalize_url(
-            base_url,
-            src,
-        )
-
-        if not _is_http_url(absolute_url):
-            continue
-
-        if absolute_url in seen_scripts:
-            continue
-
-        seen_scripts.add(absolute_url)
-        scripts.append(absolute_url)
-
-    # ---------------------------------------------------------
-    # Images
-    # ---------------------------------------------------------
-
-    images: list[str] = []
-
-    seen_images: set[str] = set()
-
-    for tag in soup.find_all("img"):
-        src = tag.get("src")
-
-        if not src:
-            continue
-
-        if not isinstance(src, str):
-            continue
-
-        src = src.strip()
-
-        if not src:
-            continue
-
-        absolute_url = _normalize_url(
-            base_url,
-            src,
-        )
-
-        if not _is_http_url(absolute_url):
-            continue
-
-        if absolute_url in seen_images:
-            continue
-
-        seen_images.add(absolute_url)
-        images.append(absolute_url)
+    canonical_tag = soup.find("link", rel=lambda value: "canonical" in value if isinstance(value, list) else str(value).lower() == "canonical")
+    canonical = str(canonical_tag.get("href")) if canonical_tag and canonical_tag.get("href") else None
 
     return HTMLAnalysis(
         title=title,
         meta_description=meta_description,
-        links=links,
+        canonical=canonical,
+        language=language,
+        charset=charset,
+        viewport=viewport,
+        link_count=len(links),
         internal_links=internal_links,
         external_links=external_links,
-        scripts=scripts,
-        images=images,
+        script_count=len(soup.find_all("script")),
+        style_count=len(soup.find_all("link", rel=lambda value: "stylesheet" in value if isinstance(value, list) else "stylesheet" in str(value).lower())),
+        image_count=len(soup.find_all("img")),
+        iframe_count=len(soup.find_all("iframe")),
+        form_count=len(soup.find_all("form")),
     )
