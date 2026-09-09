@@ -11,7 +11,7 @@ def test_robots_module_handles_robots_response():
         content="User-agent: *\nDisallow: /admin\n",
     )
     context = Mock()
-    context.get.return_value = response
+    context._client._client.get.return_value = response
     context.normalized_url = "https://example.com/"
     context.final_url = "https://example.com/"
     result = RobotsModule(context).analyze()
