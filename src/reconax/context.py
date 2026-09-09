@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional
-from urllib.parse import urljoin
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -24,13 +23,12 @@ class AnalysisContext:
             timeout=self.timeout,
             verify_ssl=self.verify_ssl,
         )
-        self._response: Optional[Any] = None
-        self._soup: Optional[BeautifulSoup] = None
+        self._response: Any = None
+        self._soup: BeautifulSoup | None = None
         self._results: dict[str, Any] = {}
 
     @property
     def normalized_url(self) -> str:
-        """Return the URL normalized by the HTTP client."""
         return self._client.normalize_url(self.url)
 
     def response(self, refresh: bool = False):
@@ -44,10 +42,7 @@ class AnalysisContext:
     def html(self) -> BeautifulSoup:
         """Return the lazily parsed primary HTML document."""
         if self._soup is None:
-            self._soup = BeautifulSoup(
-                self.response().content or "",
-                "lxml",
-            )
+            self._soup = BeautifulSoup(self.response().content or "", "lxml")
         return self._soup
 
     @property
@@ -67,11 +62,10 @@ class AnalysisContext:
         return self.response().status_code
 
     def get(self, url: str, **kwargs: Any):
-        """Perform a secondary GET using the shared HTTP client's settings."""
-        return self._client._client.get(url, **kwargs)
+        """Perform a raw secondary GET with the shared HTTP client."""
+        return self._client.raw_get(url, **kwargs)
 
     def _cached_module(self, key: str, module_class: type):
-        """Instantiate and cache one module result."""
         if key not in self._results:
             self._results[key] = module_class(self).analyze()
         return self._results[key]
@@ -149,7 +143,6 @@ class AnalysisContext:
         return self._cached_module("score", ScoreModule)
 
     def clear_cache(self) -> None:
-        """Clear the response, HTML, and module-result caches."""
         self._response = None
         self._soup = None
         self._results.clear()
