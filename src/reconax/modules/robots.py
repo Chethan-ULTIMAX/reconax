@@ -53,13 +53,16 @@ class RobotsModule(Module[RobotsAnalysis]):
                 ],
             )
 
-        # httpx exposes response.content as bytes. Decode it once here so
-        # the parser works consistently with str input and the model's
-        # raw_content field remains JSON/text friendly.
-        content = response.content.decode(
-            response.encoding or "utf-8",
-            errors="replace",
-        )
+        # The underlying httpx response exposes bytes, while the lightweight
+        # HTTPResponse used by tests/integrations may expose decoded text.
+        raw_content = response.content
+        if isinstance(raw_content, bytes):
+            content = raw_content.decode(
+                getattr(response, "encoding", None) or "utf-8",
+                errors="replace",
+            )
+        else:
+            content = str(raw_content or "")
 
         user_agents: list[str] = []
         allow_rules: list[str] = []
