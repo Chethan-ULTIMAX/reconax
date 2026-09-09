@@ -21,25 +21,27 @@ class SecurityTxtModule(Module):
         except Exception as exc:
             return SecurityTxtAnalysis(
                 found=False,
-                url=url,
                 status_code=None,
                 contact=[],
                 policy=[],
                 canonical=[],
                 expires=None,
-                errors=[str(exc)],
+                verdict="WARN",
+                flags=[str(exc)],
+                explanations=["The security.txt resource could not be fetched."],
             )
 
         if response.status_code != 200:
             return SecurityTxtAnalysis(
                 found=False,
-                url=url,
                 status_code=response.status_code,
                 contact=[],
                 policy=[],
                 canonical=[],
                 expires=None,
-                errors=[],
+                verdict="INFO",
+                flags=[],
+                explanations=["No readable security.txt was found."],
             )
 
         raw_content = response.content
@@ -55,7 +57,8 @@ class SecurityTxtModule(Module):
         policy: list[str] = []
         canonical: list[str] = []
         expires: str | None = None
-        errors: list[str] = []
+        flags: list[str] = []
+        explanations: list[str] = []
 
         for raw_line in content.splitlines():
             line = raw_line.strip()
@@ -81,17 +84,22 @@ class SecurityTxtModule(Module):
                 if parsed.tzinfo is None:
                     parsed = parsed.replace(tzinfo=timezone.utc)
                 if parsed < datetime.now(timezone.utc):
-                    errors.append("security.txt is expired")
+                    flags.append("security.txt is expired")
+                    explanations.append("The Expires field is in the past.")
             except ValueError:
-                errors.append("Invalid Expires value")
+                flags.append("Invalid Expires value")
+                explanations.append("The Expires field could not be parsed as a valid date.")
+
+        verdict = "WARN" if flags else "PASS"
 
         return SecurityTxtAnalysis(
             found=True,
-            url=url,
             status_code=response.status_code,
             contact=contact,
             policy=policy,
             canonical=canonical,
             expires=expires,
-            errors=errors,
+            verdict=verdict,
+            flags=flags,
+            explanations=explanations,
         )
