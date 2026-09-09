@@ -1,42 +1,19 @@
-"""
-Shared analysis context for ReconAx.
-
-AnalysisContext owns the target URL, HTTP client, cached response,
-and lazily-created HTML representation used by multiple analysis modules.
-
-The context is intentionally lightweight. It does not perform analysis
-itself; it provides shared resources to analysis modules.
-"""
+"""Shared analysis context for ReconAx."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Any, Optional
+from urllib.parse import urljoin
 
 from bs4 import BeautifulSoup
 
-from .http_client import HTTPClient, HTTPResponse
+from .http_client import HTTPClient
 
 
 @dataclass
 class AnalysisContext:
-    """
-    Shared state for one ReconAx analysis.
-
-    A context should normally represent one target URL. Modules receive
-    the same context so they can reuse HTTP and HTML data rather than
-    repeatedly fetching the target.
-
-    Parameters
-    ----------
-    url:
-        Target website URL.
-    timeout:
-        HTTP timeout in seconds.
-    verify_ssl:
-        Whether TLS certificate verification should be performed by the
-        HTTP client.
-    """
+    """Shared state and lazy caches for one ReconAx target."""
 
     url: str
     timeout: float = 10.0
@@ -47,92 +24,137 @@ class AnalysisContext:
             timeout=self.timeout,
             verify_ssl=self.verify_ssl,
         )
-        self._response: Optional[HTTPResponse] = None
+        self._response: Optional[Any] = None
         self._soup: Optional[BeautifulSoup] = None
+        self._results: dict[str, Any] = {}
 
     @property
     def normalized_url(self) -> str:
-        """
-        Return the normalized URL that the HTTP client would request.
-        """
+        """Return the URL normalized by the HTTP client."""
         return self._client.normalize_url(self.url)
 
-    def response(self, refresh: bool = False) -> HTTPResponse:
-        """
-        Return the cached HTTP response.
-
-        The first call performs the HTTP request. Subsequent calls return
-        the cached response unless refresh=True is explicitly requested.
-        """
+    def response(self, refresh: bool = False):
+        """Return the cached primary HTTP response."""
         if self._response is None or refresh:
             self._response = self._client.fetch(self.url)
-
-            # The response has changed, so cached HTML must be discarded.
             self._soup = None
-
+            self._results.clear()
         return self._response
 
     def html(self) -> BeautifulSoup:
-        """
-        Return a BeautifulSoup representation of the cached response body.
-
-        HTML is parsed lazily and cached for reuse by HTML, metadata,
-        resource, endpoint, technology, CSP, SRI, and attack-surface
-        modules.
-        """
+        """Return the lazily parsed primary HTML document."""
         if self._soup is None:
-            response = self.response()
-
-            content = response.content or ""
-
             self._soup = BeautifulSoup(
-                content,
+                self.response().content or "",
                 "lxml",
             )
-
         return self._soup
 
     @property
     def body(self) -> str:
-        """
-        Return the response body as text.
-        """
-        return self.response().content
+        return self.response().content or ""
 
     @property
     def response_headers(self) -> dict[str, str]:
-        """
-        Return response headers from the cached HTTP response.
-        """
         return self.response().headers
 
     @property
     def final_url(self) -> str:
-        """
-        Return the final URL after redirects.
-        """
         return self.response().final_url
 
     @property
     def status_code(self) -> int:
-        """
-        Return the HTTP status code.
-        """
         return self.response().status_code
 
-    def clear_cache(self) -> None:
-        """
-        Clear cached response and HTML data.
+    def get(self, url: str, **kwargs: Any):
+        """Perform a secondary GET using the shared HTTP client's settings."""
+        return self._client._client.get(url, **kwargs)
 
-        The HTTP client itself remains available and can be reused.
-        """
+    def _cached_module(self, key: str, module_class: type):
+        """Instantiate and cache one module result."""
+        if key not in self._results:
+            self._results[key] = module_class(self).analyze()
+        return self._results[key]
+
+    def http_result(self):
+        from .modules.http import HTTPModule
+        return self._cached_module("http", HTTPModule)
+
+    def headers_result(self):
+        from .modules.headers import HeadersModule
+        return self._cached_module("headers", HeadersModule)
+
+    def cookies_result(self):
+        from .modules.cookies import CookiesModule
+        return self._cached_module("cookies", CookiesModule)
+
+    def html_result(self):
+        from .modules.html import HTMLModule
+        return self._cached_module("html", HTMLModule)
+
+    def robots_result(self):
+        from .modules.robots import RobotsModule
+        return self._cached_module("robots", RobotsModule)
+
+    def dns_result(self):
+        from .modules.dns import DNSModule
+        return self._cached_module("dns", DNSModule)
+
+    def tls_result(self):
+        from .modules.tls import TLSModule
+        return self._cached_module("tls", TLSModule)
+
+    def tech_result(self):
+        from .modules.tech import TechModule
+        return self._cached_module("tech", TechModule)
+
+    def sitemap_result(self):
+        from .modules.sitemap import SitemapModule
+        return self._cached_module("sitemap", SitemapModule)
+
+    def cors_result(self):
+        from .modules.cors import CORSModule
+        return self._cached_module("cors", CORSModule)
+
+    def csp_result(self):
+        from .modules.csp import CSPModule
+        return self._cached_module("csp", CSPModule)
+
+    def sri_result(self):
+        from .modules.sri import SRIModule
+        return self._cached_module("sri", SRIModule)
+
+    def security_txt_result(self):
+        from .modules.security_txt import SecurityTxtModule
+        return self._cached_module("security_txt", SecurityTxtModule)
+
+    def metadata_result(self):
+        from .modules.metadata import MetadataModule
+        return self._cached_module("metadata", MetadataModule)
+
+    def resources_result(self):
+        from .modules.resources import ResourcesModule
+        return self._cached_module("resources", ResourcesModule)
+
+    def endpoints_result(self):
+        from .modules.endpoints import EndpointsModule
+        return self._cached_module("endpoints", EndpointsModule)
+
+    def attack_surface_result(self):
+        from .modules.attack_surface import AttackSurfaceModule
+        return self._cached_module("attack_surface", AttackSurfaceModule)
+
+    def score_result(self):
+        from .modules.score import ScoreModule
+        return self._cached_module("score", ScoreModule)
+
+    def clear_cache(self) -> None:
+        """Clear the response, HTML, and module-result caches."""
         self._response = None
         self._soup = None
+        self._results.clear()
 
     def close(self) -> None:
-        """
-        Close the underlying HTTP client.
-        """
         self._client.close()
 
     def __enter__(self) -> "AnalysisContext":
