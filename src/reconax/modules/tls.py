@@ -26,9 +26,7 @@ class TLSModule(Module[TLSAnalysis]):
     name = "tls"
 
     def _get_target(self) -> tuple[str, int]:
-        parsed = urlparse(
-            self.context.normalized_url
-        )
+        parsed = urlparse(self.context.normalized_url)
 
         hostname = parsed.hostname
 
@@ -97,9 +95,7 @@ class TLSModule(Module[TLSAnalysis]):
     def analyze(self) -> TLSAnalysis:
         hostname, port = self._get_target()
 
-        if self.context.normalized_url.startswith(
-            "http://"
-        ):
+        if self.context.normalized_url.startswith("http://"):
             return TLSAnalysis(
                 hostname=hostname,
                 port=port,
@@ -119,23 +115,18 @@ class TLSModule(Module[TLSAnalysis]):
                 (hostname, port),
                 timeout=self.context.timeout,
             ) as raw_socket:
-
                 with context.wrap_socket(
                     raw_socket,
                     server_hostname=hostname,
                 ) as tls_socket:
+                    # The default SSLContext has hostname verification enabled.
+                    # A successful handshake therefore means the certificate
+                    # hostname was already verified by the TLS stack. Python
+                    # 3.14 removed ssl.match_hostname, so do not call it here.
+                    certificate = tls_socket.getpeercert()
 
-                    certificate = (
-                        tls_socket.getpeercert()
-                    )
-
-                    cipher_info = (
-                        tls_socket.cipher()
-                    )
-
-                    tls_version = (
-                        tls_socket.version()
-                    )
+                    cipher_info = tls_socket.cipher()
+                    tls_version = tls_socket.version()
 
                     cipher_name = (
                         cipher_info[0]
@@ -153,64 +144,30 @@ class TLSModule(Module[TLSAnalysis]):
                         "issuer",
                     )
 
-                    sans = (
-                        self._subject_alt_names(
-                            certificate
-                        )
-                    )
+                    sans = self._subject_alt_names(certificate)
 
-                    valid_from = (
-                        certificate.get(
-                            "notBefore"
-                        )
-                    )
+                    valid_from = certificate.get("notBefore")
+                    valid_until = certificate.get("notAfter")
 
-                    valid_until = (
-                        certificate.get(
-                            "notAfter"
-                        )
-                    )
-
-                    valid_from_dt = (
-                        self._parse_certificate_date(
-                            valid_from
-                        )
-                    )
-
-                    valid_until_dt = (
-                        self._parse_certificate_date(
-                            valid_until
-                        )
-                    )
+                    valid_from_dt = self._parse_certificate_date(valid_from)
+                    valid_until_dt = self._parse_certificate_date(valid_until)
 
                     days_remaining: int | None = None
 
                     if valid_until_dt:
                         days_remaining = (
                             valid_until_dt
-                            - datetime.now(
-                                timezone.utc
-                            )
+                            - datetime.now(timezone.utc)
                         ).days
 
-                    hostname_match = None
-
-                    try:
-                        ssl.match_hostname(
-                            certificate,
-                            hostname,
-                        )
-                        hostname_match = True
-                    except ssl.CertificateError:
-                        hostname_match = False
+                    # context.wrap_socket() performs certificate chain and
+                    # hostname verification because check_hostname is enabled
+                    # on the default context. Reaching this point means the
+                    # target hostname matched the verified certificate.
+                    hostname_match = True
 
                     flags: list[str] = []
                     explanations: list[str] = []
-
-                    if hostname_match is False:
-                        flags.append(
-                            "Certificate hostname does not match the target."
-                        )
 
                     if days_remaining is not None:
                         if days_remaining < 0:
@@ -222,10 +179,7 @@ class TLSModule(Module[TLSAnalysis]):
                                 "TLS certificate expires within 30 days."
                             )
 
-                    if tls_version in {
-                        "TLSv1",
-                        "TLSv1.1",
-                    }:
+                    if tls_version in {"TLSv1", "TLSv1.1"}:
                         flags.append(
                             f"Legacy TLS version observed: {tls_version}."
                         )
@@ -243,14 +197,8 @@ class TLSModule(Module[TLSAnalysis]):
                         subject=subject,
                         issuer=issuer,
                         serial_number=(
-                            str(
-                                certificate.get(
-                                    "serialNumber"
-                                )
-                            )
-                            if certificate.get(
-                                "serialNumber"
-                            )
+                            str(certificate.get("serialNumber"))
+                            if certificate.get("serialNumber")
                             else None
                         ),
                         valid_from=valid_from,
@@ -271,9 +219,7 @@ class TLSModule(Module[TLSAnalysis]):
                 hostname=hostname,
                 port=port,
                 verdict="WARN",
-                flags=[
-                    "TLS connection timed out."
-                ],
+                flags=["TLS connection timed out."],
                 error=str(exc),
             )
 
