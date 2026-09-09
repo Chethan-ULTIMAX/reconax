@@ -1,56 +1,13 @@
-"""
-High-level ReconAx API.
-
-ReconAx coordinates the individual analysis modules while keeping each
-module independently usable.
-
-The class is deliberately thin: analysis logic belongs inside modules.
-"""
+"""High-level ReconAx API."""
 
 from __future__ import annotations
-
-from typing import Optional
 
 from .context import AnalysisContext
 from .models import ReconReport
 
-from .modules.http import HTTPModule
-from .modules.headers import HeadersModule
-from .modules.cookies import CookiesModule
-from .modules.html import HTMLModule
-from .modules.robots import RobotsModule
-from .modules.dns import DNSModule
-from .modules.tls import TLSModule
-from .modules.tech import TechModule
-from .modules.sitemap import SitemapModule
-from .modules.cors import CORSModule
-from .modules.csp import CSPModule
-from .modules.sri import SRIModule
-from .modules.security_txt import SecurityTxtModule
-from .modules.metadata import MetadataModule
-from .modules.resources import ResourcesModule
-from .modules.endpoints import EndpointsModule
-from .modules.attack_surface import AttackSurfaceModule
-from .modules.score import ScoreModule
-
 
 class ReconAx:
-    """
-    Main ReconAx analysis interface.
-
-    Example
-    -------
-    >>> recon = ReconAx("https://example.com")
-    >>> report = recon.analyze()
-
-    Individual modules are also available:
-
-    >>> recon.headers()
-    >>> recon.cookies()
-    >>> recon.tls()
-    >>> recon.tech()
-    >>> recon.score()
-    """
+    """Main public interface for ReconAx analysis."""
 
     def __init__(
         self,
@@ -67,99 +24,68 @@ class ReconAx:
 
     @property
     def url(self) -> str:
-        """Return the original target URL."""
         return self.context.url
 
     @property
     def normalized_url(self) -> str:
-        """Return the normalized target URL."""
         return self.context.normalized_url
 
     def http(self):
-        """Run HTTP analysis."""
-        return HTTPModule(self.context).analyze()
+        return self.context.http_result()
 
     def headers(self):
-        """Run security-header analysis."""
-        return HeadersModule(self.context).analyze()
+        return self.context.headers_result()
 
     def cookies(self):
-        """Run cookie analysis."""
-        return CookiesModule(self.context).analyze()
+        return self.context.cookies_result()
 
     def html(self):
-        """Run HTML analysis."""
-        return HTMLModule(self.context).analyze()
+        return self.context.html_result()
 
     def robots(self):
-        """Run robots.txt analysis."""
-        return RobotsModule(self.context).analyze()
+        return self.context.robots_result()
 
     def dns(self):
-        """Run DNS analysis."""
-        return DNSModule(self.context).analyze()
+        return self.context.dns_result()
 
     def tls(self):
-        """Run TLS/certificate analysis."""
-        return TLSModule(self.context).analyze()
+        return self.context.tls_result()
 
     def tech(self):
-        """Run passive technology detection."""
-        return TechModule(self.context).analyze()
+        return self.context.tech_result()
 
     def sitemap(self):
-        """Run sitemap analysis."""
-        return SitemapModule(self.context).analyze()
+        return self.context.sitemap_result()
 
     def cors(self):
-        """Run passive CORS analysis."""
-        return CORSModule(self.context).analyze()
+        return self.context.cors_result()
 
     def csp(self):
-        """Run Content-Security-Policy analysis."""
-        return CSPModule(self.context).analyze()
+        return self.context.csp_result()
 
     def sri(self):
-        """Run Subresource Integrity analysis."""
-        return SRIModule(self.context).analyze()
+        return self.context.sri_result()
 
     def security_txt(self):
-        """Analyze /.well-known/security.txt."""
-        return SecurityTxtModule(self.context).analyze()
+        return self.context.security_txt_result()
 
     def metadata(self):
-        """Analyze public HTML metadata."""
-        return MetadataModule(self.context).analyze()
+        return self.context.metadata_result()
 
     def resources(self):
-        """Analyze resources referenced by the page."""
-        return ResourcesModule(self.context).analyze()
+        return self.context.resources_result()
 
     def endpoints(self):
-        """Extract publicly observed endpoint-like URLs."""
-        return EndpointsModule(self.context).analyze()
+        return self.context.endpoints_result()
 
     def attack_surface(self):
-        """Build a passive public attack-surface summary."""
-        return AttackSurfaceModule(self.context).analyze()
+        return self.context.attack_surface_result()
 
     def score(self):
-        """Calculate the website hygiene score."""
-        return ScoreModule(self.context).analyze()
+        return self.context.score_result()
 
-    def analyze(
-        self,
-        *,
-        include_dns: bool = True,
-    ) -> ReconReport:
-        """
-        Run the complete ReconAx analysis.
-
-        The initial HTTP response is shared between modules through the
-        AnalysisContext. Additional explicitly required resources such
-        as robots.txt, sitemap.xml, security.txt, DNS, and TLS are fetched
-        only by their respective modules.
-        """
+    def analyze(self, *, include_dns: bool = True) -> ReconReport:
+        """Run the complete passive analysis using shared module caches."""
         report = ReconReport(
             target=self.url,
             normalized_url=self.normalized_url,
@@ -180,16 +106,11 @@ class ReconAx:
             resources=self.resources(),
             endpoints=self.endpoints(),
             attack_surface=self.attack_surface(),
-            score=None,
+            score=self.score(),
         )
-
-        # Score is calculated after the other relevant analyses exist.
-        report.score = self.score()
-
         return report
 
     def close(self) -> None:
-        """Close the underlying HTTP client."""
         self.context.close()
 
     def __enter__(self) -> "ReconAx":
