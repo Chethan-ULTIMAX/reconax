@@ -41,7 +41,7 @@ class SecurityTxtModule(Module[SecurityTxtAnalysis]):
         canonicals: list[str] = []
         expires: str | None = None
 
-        for raw_line in response.text.splitlines():
+        for raw_line in response.content.splitlines():
             line = raw_line.strip()
             if not line or line.startswith("#") or ":" not in line:
                 continue
