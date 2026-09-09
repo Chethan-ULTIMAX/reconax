@@ -53,7 +53,13 @@ class RobotsModule(Module[RobotsAnalysis]):
                 ],
             )
 
-        content = response.content
+        # httpx exposes response.content as bytes. Decode it once here so
+        # the parser works consistently with str input and the model's
+        # raw_content field remains JSON/text friendly.
+        content = response.content.decode(
+            response.encoding or "utf-8",
+            errors="replace",
+        )
 
         user_agents: list[str] = []
         allow_rules: list[str] = []
@@ -69,10 +75,7 @@ class RobotsModule(Module[RobotsAnalysis]):
             if ":" not in line:
                 continue
 
-            directive, value = line.split(
-                ":",
-                1,
-            )
+            directive, value = line.split(":", 1)
 
             directive = directive.strip().lower()
             value = value.strip()
