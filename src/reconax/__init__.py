@@ -48,9 +48,7 @@ from .shortcuts import (
     score,
 )
 
-# Keep the package version aligned with the currently released v0.1.x
-# metadata. v0.2.0 remains development work until explicitly released.
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "ReconAx",
