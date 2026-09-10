@@ -91,7 +91,7 @@ def _parse_cookie(
             )
 
             key = key.strip().lower()
-            value = value.strip()
+            value = value.strip().rstrip(",")
 
             if key == "samesite":
                 samesite = value
