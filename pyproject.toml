@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reconax"
-version = "0.1.0"
-description = "A lightweight, developer-friendly website analyzer for HTTP, HTML, headers, cookies, robots.txt, and DNS."
+version = "0.2.0"
+description = "A lightweight, developer-friendly website analyzer for HTTP, HTML, headers, cookies, robots.txt, DNS, TLS, and passive web intelligence."
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
@@ -21,6 +21,7 @@ keywords = [
     "http",
     "dns",
     "html",
+    "tls",
     "security-headers",
     "bug-bounty",
     "cybersecurity",
@@ -39,6 +40,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Internet",
     "Topic :: Security",
     "Topic :: Software Development :: Libraries",
