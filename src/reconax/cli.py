@@ -2,8 +2,16 @@
 
 from __future__ import annotations
 
+import sys
+
 from pathlib import Path
 from typing import Any, Callable
+
+# Ensure UTF-8 encoding on Windows to prevent charmap errors with Rich Unicode
+if sys.stdout.encoding != "UTF-8":
+    sys.stdout.reconfigure(encoding="utf-8")
+if sys.stderr.encoding != "UTF-8":
+    sys.stderr.reconfigure(encoding="utf-8")
 
 import typer
 

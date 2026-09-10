@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -30,6 +31,11 @@ class AnalysisContext:
     @property
     def normalized_url(self) -> str:
         return self._client.normalize_url(self.url)
+
+    @property
+    def origin(self) -> str:
+        parsed = urlparse(self.url)
+        return f"{parsed.scheme}://{parsed.netloc}"
 
     def response(self, refresh: bool = False):
         """Return the cached primary HTTP response."""
