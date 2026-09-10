@@ -98,6 +98,14 @@ def test_parse_cookies_handles_multiple_cookies():
     result = parse_cookies("session=abc; Secure; HttpOnly, theme=dark; SameSite=Lax")
     assert {cookie.name for cookie in result} == {"session", "theme"}
 
+def test_parse_cookies_strips_trailing_comma_from_samesite():
+    result = parse_cookies(
+        "session=abc; Secure; HttpOnly; SameSite=Lax,"
+    )
+
+    assert len(result) == 1
+    assert result[0].name == "session"
+    assert result[0].samesite == "Lax"
 
 def test_parse_cookies_handles_empty_header():
     assert parse_cookies("") == []
