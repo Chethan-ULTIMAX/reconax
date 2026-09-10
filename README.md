@@ -1,373 +1,266 @@
 # ⚡ ReconAx
 
-### Know your website. In one command.
+**A lightweight Python library and CLI for passive website analysis.**
 
-ReconAx is a **lightweight website analyzer** that turns a URL into a clean, useful report.
+Analyze websites for HTTP information, security headers, cookies, TLS, DNS, technologies, metadata, public endpoints, resources, and more.
+
+**No API keys · Local analysis · Passive by design**
+
+⭐ Star the repo if you find ReconAx useful.
+
+---
+
+## ✨ Features
+
+- 🌐 HTTP & redirects
+- 🛡️ Security headers
+- 🍪 Cookie analysis
+- 📄 HTML & metadata
+- 🔐 TLS / certificate information
+- 🌍 DNS records
+- 🧠 Technology detection
+- 🔄 CORS & CSP
+- 🔒 SRI
+- 🤖 robots.txt & sitemap
+- 🔗 Public endpoints
+- 📦 External resources
+- 🎯 Passive attack surface
+- 📊 Website Hygiene Score
+- 📋 JSON output
+
+---
+
+## 📦 Installation
+
+### Windows
 
 ```bash
-reconax example.com
+git clone https://github.com/Chethan-ULTIMAX/reconax.git
+cd reconax
+
+python -m venv .venv
+.venv\Scripts\activate
+
+python -m pip install --upgrade pip
+pip install -e .
 ```
 
-That's it. ⚡
+### Linux / macOS
 
-It checks the things developers, students, and security learners commonly want to see — **HTTP, headers, cookies, HTML, links, robots.txt, and DNS** — without requiring a pile of different commands.
+```bash
+git clone https://github.com/Chethan-ULTIMAX/reconax.git
+cd reconax
 
----
+python3 -m venv .venv
+source .venv/bin/activate
 
-## ✨ What do you get?
-
-```text
-╭──────────────────────────────────────────────╮
-│              ⚡ ReconAx Report                │
-│              https://example.com             │
-╰──────────────────────────────────────────────╯
-
-HTTP
-  Status          200 OK
-  Response Time   184 ms
-  Final URL       https://example.com/
-  HTTP Version    HTTP/1.1
-  Content-Type    text/html
-
-Security Headers
-  ✓ Strict-Transport-Security
-  ✓ X-Content-Type-Options
-  ✓ X-Frame-Options
-  ✗ Content-Security-Policy
-
-Cookies
-  session         Secure ✓  HttpOnly ✓  SameSite=Lax
-
-HTML
-  Title           Example Domain
-  Links           3 internal · 2 external
-  Scripts         2
-  Images          1
-
-robots.txt
-  Found           ✓
-  Disallow Rules  2
-  Sitemaps        1
-
-DNS
-  A               93.184.216.34
-  AAAA            none
-  MX              none
-  NS              example.com
+python -m pip install --upgrade pip
+pip install -e .
 ```
 
-**One URL → one report.**
-
----
-
-## 🚀 Install
+### PyPI
 
 ```bash
 pip install reconax
 ```
 
-Then:
+---
+
+## 🚀 CLI
+
+Analyze a website:
 
 ```bash
-reconax example.com
+reconax analyze example.com
 ```
 
-You can use either:
+JSON output:
 
 ```bash
-reconax example.com
+reconax analyze example.com --json
 ```
 
-or:
+Save JSON:
 
 ```bash
-reconax https://example.com
+reconax analyze example.com --json -o report.json
+```
+
+Individual modules:
+
+```bash
+reconax headers example.com
+reconax cookies example.com
+reconax html example.com
+reconax dns example.com
+reconax tls example.com
+reconax tech example.com
+reconax csp example.com
+reconax cors example.com
+reconax endpoints example.com
+reconax attack-surface example.com
+reconax score example.com
+```
+
+See all commands:
+
+```bash
+reconax --help
 ```
 
 ---
 
-## 🔍 What ReconAx checks
+## 🐍 Python
 
-### 🌐 HTTP
-
-<<<<<<< HEAD
-- Status code
-- Response time
-- Redirects
-- Final URL
-- HTTP version
-- Content type
-- Content length
-- Response headers
-=======
-* Status code
-* Response time
-* Redirects
-* Final URL
-* HTTP version
-* Content type
-* Content length
-* Response headers
->>>>>>> f69ca0d (docs: improve project README and metadata)
-
-### 🛡️ Security Headers
-
-Checks commonly used headers such as:
-
-<<<<<<< HEAD
-- `Strict-Transport-Security`
-- `Content-Security-Policy`
-- `X-Content-Type-Options`
-- `X-Frame-Options`
-- `Referrer-Policy`
-- `Permissions-Policy`
-=======
-* `Strict-Transport-Security`
-* `Content-Security-Policy`
-* `X-Content-Type-Options`
-* `X-Frame-Options`
-* `Referrer-Policy`
-* `Permissions-Policy`
->>>>>>> f69ca0d (docs: improve project README and metadata)
-
-### 🍪 Cookies
-
-Shows cookie names and security flags:
-
-```text
-Secure
-HttpOnly
-SameSite
-```
-
-Cookie values are **never included** in the report.
-
-### 🧩 HTML
-
-Extracts:
-
-<<<<<<< HEAD
-- Page title
-- Meta description
-- Internal links
-- External links
-- Scripts
-- Images
-=======
-* Page title
-* Meta description
-* Internal links
-* External links
-* Scripts
-* Images
->>>>>>> f69ca0d (docs: improve project README and metadata)
-
-### 🤖 robots.txt
-
-Checks:
-
-```text
-/robots.txt
-```
-
-and shows:
-
-<<<<<<< HEAD
-- Disallow rules
-- Sitemap URLs
-=======
-* Disallow rules
-* Sitemap URLs
->>>>>>> f69ca0d (docs: improve project README and metadata)
-
-### 🌎 DNS
-
-Looks up:
-
-```text
-A
-AAAA
-MX
-NS
-TXT
-```
-
----
-
-# ⚡ Useful commands
-
-### Basic analysis
-
-```bash
-reconax example.com
-```
-
-### JSON output
-
-```bash
-reconax example.com --json
-```
-
-Perfect for scripts and automation.
-
-### Save a report
-
-```bash
-reconax example.com -o report.json
-```
-
-### Explain security headers
-
-```bash
-reconax example.com --explain
-```
-
-### Skip DNS
-
-```bash
-reconax example.com --no-dns
-```
-
-### Change timeout
-
-```bash
-reconax example.com --timeout 20
-```
-
----
-
-# 🐍 Use it in Python
-
-ReconAx isn't only a CLI tool.
+Run a complete analysis:
 
 ```python
-from reconax import ReconAx
+import reconax
 
-report = ReconAx(
-    "https://example.com"
-).analyze()
+report = reconax.analyze("https://example.com")
 
-print(report.status_code)
-print(report.html.title)
+print(report.http.status_code)
+print(report.tls.tls_version)
+print(report.score.score)
 ```
 
-Access the information you need:
+Use individual modules:
 
 ```python
-print(report.final_url)
+import reconax
 
-print(report.headers.present)
+headers = reconax.headers("https://example.com")
 
-print(report.headers.missing)
-
-print(report.html.internal_links)
-
-print(report.html.external_links)
-
-print(report.dns.a)
+print(headers.present)
+print(headers.missing)
+print(headers.verdict)
 ```
 
----
-
-# 📄 Export reports
-
-Turn the result into a Python dictionary:
+Inspect the complete report:
 
 ```python
-data = report.to_dict()
+report = reconax.analyze("https://github.com")
+
+print(report.http)
+print(report.headers)
+print(report.cookies)
+print(report.tls)
+print(report.tech)
+print(report.endpoints)
+print(report.attack_surface)
+print(report.score)
 ```
 
-Or save it directly as JSON:
+---
+
+## 📊 Website Hygiene Score
+
+ReconAx provides a simple **0–100 Website Hygiene Score** based on passive configuration checks.
 
 ```python
-report.to_json("report.json")
+report = reconax.analyze("https://example.com")
+
+print(report.score.score)
+print(report.score.grade)
 ```
 
-Example:
+The score is **not a vulnerability score** and does not guarantee that a website is secure.
 
-```json
-{
-  "requested_url": "https://example.com",
-  "status_code": 200,
-  "elapsed_ms": 184.21,
-  "html": {
-    "title": "Example Domain"
-  }
-}
+---
+
+## 🛡️ Passive by Design
+
+ReconAx focuses on lightweight analysis of publicly accessible website information.
+
+It does **not** perform:
+
+- brute forcing
+- exploitation
+- port scanning
+- credential attacks
+- authentication bypass
+- aggressive crawling
+
+Only analyze systems you own or have permission to test.
+
+---
+
+## 🖥️ GUI
+
+A graphical interface is planned for a future version.
+
+The current release focuses on the **Python API + CLI**.
+
+---
+
+## 🧪 Development
+
+Install the development version:
+
+```bash
+pip install -e ".[dev]"
+```
+
+Run tests:
+
+```bash
+python -m pytest -q
 ```
 
 ---
 
-# 🎯 Why ReconAx?
+## 🛠️ Common Issues
 
-### Before
+### `reconax` is not recognized
 
-```text
-HTTP information      → command 1
-Headers               → command 2
-HTML                  → command 3
-DNS                   → command 4
-robots.txt            → command 5
+Try:
 
-Then manually connect everything.
+```bash
+python -m reconax.cli --help
 ```
 
-### With ReconAx
+If this works, your Python Scripts directory may not be in `PATH`.
 
-```text
-                 YOUR URL
-                    │
-                    ▼
-               ⚡ ReconAx
-                    │
-                    ▼
-             ONE CLEAN REPORT
+### `pytest` is not recognized
+
+Use:
+
+```bash
+python -m pytest
 ```
 
-Simple.
+### Windows Unicode / encoding errors
 
-Lightweight.
+Try:
 
-Useful.
+```bash
+chcp 65001
+```
 
----
+ReconAx configures CLI output for UTF-8 on Windows.
 
-# 🔐 Built to be respectful
+### SSL errors
 
-ReconAx focuses on **lightweight public-information analysis**.
+If necessary, certificate verification can be disabled through the Python API:
 
-It does not perform:
+```python
+reconax.analyze("https://example.com", verify_ssl=False)
+```
 
-<<<<<<< HEAD
-- Port scanning
-- Brute forcing
-- Exploitation
-- Credential attacks
-- Authentication bypass
-- Aggressive scanning
-=======
-* Port scanning
-* Brute forcing
-* Exploitation
-* Credential attacks
-* Authentication bypass
-* Aggressive scanning
->>>>>>> f69ca0d (docs: improve project README and metadata)
-
-Use ReconAx only on websites and systems you're authorized to analyze.
+Use this only when you understand the implications.
 
 ---
 
-# 📦 Project status
+## 📄 License
 
-ReconAx is currently in **early development**.
-
-The core analyzer and CLI are being actively developed and tested.
+MIT License.
 
 ---
 
-# ⭐ Like ReconAx?
+## ⭐ Support ReconAx
 
-If you find it useful, consider giving the project a ⭐ on GitHub.
+If ReconAx is useful to you:
 
-**ReconAx — one URL, one command, one clear report. ⚡**
+**⭐ Star it · 🐛 Report bugs · 💡 Suggest ideas**
+
+**ReconAx — one URL, one clear report. ⚡**
